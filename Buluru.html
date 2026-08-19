@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Panorama Viewer</title>
+<style>
+  html, body { margin:0; padding:0; }
+  #pano-wrap {
+    width:100%; height:500px; overflow:hidden; position:relative;
+    cursor:grab; background:black;
+  }
+  #pano-wrap.grabbing { cursor:grabbing; }
+  #pano-img {
+    height:500px; width:auto; display:block; position:absolute;
+    top:50%; left:0; transform:translateY(-50%);
+    user-select:none; -webkit-user-drag:none;
+  }
+</style>
+</head>
+<body>
+<div id="pano-wrap">
+  <img id="pano-img"
+    src="https://www.arcgis.com/sharing/rest/content/items/cdec67ed8f6c439eb3e2f9493319ad47/data"
+    draggable="false">
+</div>
+
+<script>
+(function() {
+  const wrap = document.getElementById('pano-wrap');
+  const img = document.getElementById('pano-img');
+  let isDown = false, startX, startLeft;
+
+  function clamp(left) {
+    const minLeft = wrap.clientWidth - img.clientWidth;
+    return Math.min(0, Math.max(minLeft, left));
+  }
+
+  // Mouse events
+  wrap.addEventListener('mousedown', (e) => {
+    isDown = true;
+    wrap.classList.add('grabbing');
+    startX = e.pageX;
+    startLeft = img.offsetLeft;
+    e.preventDefault();
+  });
+  window.addEventListener('mouseup', () => {
+    isDown = false;
+    wrap.classList.remove('grabbing');
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    const dx = e.pageX - startX;
+    img.style.left = clamp(startLeft + dx) + 'px';
+  });
+
+  // Touch events
+  wrap.addEventListener('touchstart', (e) => {
+    isDown = true;
+    startX = e.touches[0].pageX;
+    startLeft = img.offsetLeft;
+  }, { passive: true });
+  window.addEventListener('touchend', () => { isDown = false; });
+  window.addEventListener('touchmove', (e) => {
+    if (!isDown) return;
+    const dx = e.touches[0].pageX - startX;
+    img.style.left = clamp(startLeft + dx) + 'px';
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>
